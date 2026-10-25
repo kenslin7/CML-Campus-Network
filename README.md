@@ -33,7 +33,7 @@ This lab focuses on the Three Tier hierarchical model of core, distribution, and
 
 **Dual ISP Connectivity**
 
-The edge routers in the topology have redundant connections to ISP 1 and ISP 2. E R1 has ISP 1 as the primary path and E R2 has ISP 2 as its primary path, while the other ISP acts as failover on both edge routers. Both are advertising their default routes into OSPF using `default-information originate`, which makes them Autonomous System Boundary Routers (ASBRs). ASBRs allow routes from other protocols to be included in OSPF.
+The edge routers in the topology have redundant connections to ISP-1 and ISP-2. E-R1 has ISP-1 as the primary path and E-R2 has ISP-2 as its primary path, while the other ISP acts as failover on both edge routers. Both are advertising their default routes into OSPF using `default-information originate`, which makes them Autonomous System Boundary Routers (ASBRs). ASBRs allow routes from other protocols to be included in OSPF.
 
 > **Note:** The ISPs are represented by L2 Switches in this lab that have no configuration.
 
@@ -119,7 +119,7 @@ Spanning tree prevents loops at L2, sometimes called broadcast storms, which can
 
 ![D-SW1-B1 Rapid PVST+ configuration](images/image6.png)
 
-D SW1 for both buildings is configured as the root bridge for each VLAN and is also the VRRP master in this lab. Although traffic could be load balanced by having separate root bridges for different VLANs, I didn't believe it was necessary in this environment since the buildings don't have a lot of devices or traffic.
+D-SW1 for both buildings is configured as the root bridge for each VLAN and is also the VRRP master in this lab. Although traffic could be load balanced by having separate root bridges for different VLANs, I didn't believe it was necessary in this environment since the buildings don't have a lot of devices or traffic.
 
 Root guard was configured on ports connecting to access layer switches to prevent a new switch with lower BPDUs from overwriting the current root bridge.
 
@@ -127,7 +127,7 @@ Root guard was configured on ports connecting to access layer switches to preven
 
 ![D-SW2-B1 Rapid PVST+ configuration](images/image7.png)
 
-D SW1 and D SW2 in Building 2 are configured identically.
+D-SW1 and D-SW2 in Building 2 are configured identically.
 
 ## NTP Configuration
 
@@ -137,7 +137,7 @@ Network Time Protocol (NTP) allows devices to synchronize their time to an NTP s
 
 ![E-R1 NTP configuration](images/image8.png)
 
-E R1 and E R2 are both configured as NTP masters. The core switches use them as their NTP servers, the distribution switches use the core, and the access layer switches use the distribution switches as their NTP servers. This creates an NTP hierarchy within the network.
+E-R1 and E-R2 are both configured as NTP masters. The core switches use them as their NTP servers, the distribution switches use the core, and the access layer switches use the distribution switches as their NTP servers. This creates an NTP hierarchy within the network.
 
 **NTP Issue:** I noticed that NTP wouldn't sync between Edge R1 and C SW1, even though they are directly connected. After some research I learned that this is a common issue with Cisco IOL (IOS on Linux) devices having trouble synchronizing time, even with matching configurations. Because of this issue, I removed all NTP authentication, but I kept it in this documentation to show what would be used in a production network.
 
@@ -165,7 +165,7 @@ I excluded addresses `.1` through `.10` for each VLAN's subnet to prevent addres
 
 ![E-R1 Building 2 DHCP pools](images/image12.png)
 
-Distribution switches were configured with `ip helper-address 1.1.1.1` on their VLAN SVIs, pointing to E R1 as the DHCP server for this lab.
+Distribution switches were configured with `ip helper-address 1.1.1.1` on their VLAN SVIs, pointing to E-R1 as the DHCP server for this lab.
 
 **PC4 DHCP Lease in VLAN 40:**
 
@@ -205,9 +205,9 @@ Given the sheer number of broadcasts and packets input and output, I suspected a
 
 An interesting part of the `e0/0` interface output above was the amount of unknown protocol drops. After researching, I determined that on some versions of IOS, when a switch receives 802.1Q tagged frames for VLANs not configured on the port, it doesn't know what to do and flags the frames as an unknown protocol, flooding the frame instead of dropping it. This explained the broadcasts. Rather than an STP loop, a broadcast storm was still being created, causing connection issues, instability, high CPU usage, and delayed commands since the switches continuously sent broadcasts to each other.
 
-To fix this issue, I double checked interface statuses on switches in Building 2 and found that D SW2 B2 was missing trunk configurations to switches A SW1 B2 and A SW2 B2.
+To fix this issue, I double checked interface statuses on switches in Building 2 and found that D-SW2-B2 was missing trunk configurations to switches A-SW1-B2 and A-SW2-B2.
 
-Regarding the large number of collisions and output errors, this is due to false collision reports within CML using IOS on Linux devices, even when using full duplex. Processing frames during the broadcast storm was pushed to extreme rates, which also increased these counters.
+Regarding the large number of collisions and output errors, this is due to false collision reports within CML using IOS on Linux (IOL) devices, even when using full duplex. Processing frames during the broadcast storm was pushed to extreme rates, which also increased these counters.
 
 **A-SW1-B1 Port Security Configuration:**
 
@@ -223,7 +223,7 @@ DHCP snooping prevents unauthorized devices from acting as a rogue DHCP server a
 
 ![A-SW1-B1 DHCP snooping configuration](images/image18.png)
 
-E0/0 and E0/1 are trunks leading to the distribution switches on all access switches. Since DHCP comes from E R1, the connections leading to it need to be trusted. Because the trunks carry VLANs 10, 20, 30, and 40, DHCP snooping needs to be enabled for those VLANs.
+E0/0 and E0/1 are trunks leading to the distribution switches on all access switches. Since DHCP comes from E-R1, the connections leading to it need to be trusted. Because the trunks carry VLANs 10, 20, 30, and 40, DHCP snooping needs to be enabled for those VLANs.
 
 ## Dynamic ARP Inspection Configuration
 
