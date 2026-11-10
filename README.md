@@ -201,11 +201,11 @@ For this lab, the violation setting is set to restrict, which drops the traffic 
 
 ![A-SW2-B2 interface output](images/image16.png)
 
-Given the sheer number of broadcasts and packets input and output, I suspected a STP broadcast storm, so I verified all STP states using `show spanning-tree` and `show spanning-tree summary`, but all ports were in the correct states. Once port states were verified, I no longer suspected an STP loop as the cause.
+Given the sheer number of broadcasts and packets input and output, I suspected a STP broadcast storm, so I verified all STP states using `show spanning-tree` and `show spanning-tree summary` on each switch, but all ports were in the correct states. Once port states were verified, I no longer suspected an STP loop as the cause.
 
-An interesting part of the `e0/0` interface output above was the amount of unknown protocol drops. After researching, I determined that on some versions of IOS, when a switch receives 802.1Q tagged frames for VLANs not configured on the port, it doesn't know what to do and flags the frames as an unknown protocol, flooding the frame instead of dropping it. This explained the broadcasts. Rather than an STP loop, a broadcast storm was still being created, causing connection issues, instability, high CPU usage, and delayed commands since the switches continuously sent broadcasts to each other.
+An interesting part of the `e0/0` interface output above was the amount of unknown protocol drops. After researching, I determined when a switch receives 802.1Q tagged frames for VLANs not configured on the port, it doesn't know what to do and flags the frames as an unknown protocol, dropping the frame. Rather than an STP loop, a broadcast storm was still being created, causing connection issues, instability, high CPU usage, and delayed commands since the switches continuously sent broadcasts to each other and were dropping frames.
 
-To fix this issue, I double checked interface statuses on switches in Building 2 and found that D-SW2-B2 was missing trunk configurations to switches A-SW1-B2 and A-SW2-B2.
+Although I am unsure of what exactly was being broadcasted to cause a loop, To fix this issue, I double checked interface statuses on switches in Building 2 and found that D-SW2-B2 was missing trunk configurations to switches A-SW1-B2 and A-SW2-B2. Once these changes were made the interfaces returned to normal. 
 
 Regarding the large number of collisions and output errors, this is due to false collision reports within CML using IOS on Linux (IOL) devices, even when using full duplex. Processing frames during the broadcast storm was pushed to extreme rates, which also increased these counters.
 
